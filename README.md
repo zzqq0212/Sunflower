@@ -1,18 +1,15 @@
 Table of Contents
-- [1. Linux Kernel Enriched Corpus for Fuzzers](#1-linux-kernel-enriched-corpus-for-fuzzers)
+- [1. Linux Kernel Enriched Corpus Contructed by  leveraging exploits and PoCs for Fuzzers](#1-linux-kernel-enriched-corpus-for-fuzzers)
   - [1.1. Using Enriched corpus with Syzkaller](#11-using-enriched-corpus-with-syzkaller)
   <!-- - [1.2. Using Enriched corpus with HEALER](#12-using-enriched-corpus-with-healer) -->
   <!-- - [1.2. Citing](#13-citing) -->
   - [1.2. Corpus Construction](#14-diy)
     - [1.2.1. Collecting expoloits Manually](#141-fetching-corpus-manually)
     - [1.2.2. Generating corpus.db File](#142-generating-corpusdb-file)
-  <!-- - [1.3. Corpus Files Available](#15-corpus-files-available) -->
-  - [1.4. Results](#16-results)
-    - [1.4.1. Coverage over time](#161-coverage-over-time)
-    - [1.4.2. Unique Crashes over time](#162-unique-crashes-over-time)
-    - [1.4.3. Total Crashes over time](#163-total-crashes-over-time)
-    - [1.4.4. CVEs:](#164-cves)
-    - [1.4.5. New Bugs Reported:](#165-new-bugs-reported)
+  - [1.3. Results](#16-results)
+    - [1.3.1. Coverage over time](#161-coverage-over-time)
+    - [1.3.2. CVEs:](#164-cves)
+    - [1.3.3. New Bugs Reported:](#165-new-bugs-reported)
     <!-- - [1.4.6. More bugs discovered (includes bugs that were found sooner than syzbot \& bugs undiscovered by syzbot)](#166-more-bugs-discovered-includes-bugs-that-were-found-sooner-than-syzbot--bugs-undiscovered-by-syzbot) -->
 
 
@@ -55,7 +52,7 @@ An implementation of this is available in the GitHub actions workflow [here](./.
 3. [enriched-ci-qemu-upstream-corpus.db](./enriched-ci-qemu-upstream-corpus.db) : Enriched Version of the Corpus Obtained from Syzbot (version 0 for `syz-db`)
 A detailed comparison of the three is provided in the [research document](https://www.proquest.com/docview/2812311865). More documentation to follow. -->
 
-## 1.4. Results
+## 1.3. Results
 
 1.Host Machine System Configuration
    ```
@@ -67,14 +64,12 @@ A detailed comparison of the three is provided in the [research document](https:
   ```
   2 core CPU + 2GB Memory
   ```
+3.Test targeted Linux Version
 
-> Test targeted Linux Version
-  ```
 We chose Linux kernel v5.15, v6.1, v6.3.4, and v6.5 as our test kernel targets. In detail, the Linux v6.5 is the latest release version when we were conducting experiments. Each version of the kernel uses the same compilation configuration, while KCOV and KASAN options are enabled in order to collect code coverage and detect memory errors. When setting up the KCSAN configuration, the same configuration is  used in the control test. 
-```
 
 
-### 1.4.1. Coverage over time 
+### 1.3.1. Coverage over time 
 10 VM (2vCPU and 2G RAM) average for 48 hours.
 
 ![image](https://github.com/zzqq0212/Sunflower/blob/main/assets/coverage-sunflower.png)  
@@ -95,14 +90,14 @@ We chose Linux kernel v5.15, v6.1, v6.3.4, and v6.5 as our test kernel targets. 
 ![image](https://github.com/cmu-pasta/linux-kernel-enriched-corpus/assets/6431196/86ff9b82-68f4-4311-a453-92311cc5223b) -->
 
 
-### 1.4.4. CVEs:
+### 1.3.2. CVEs:
 
 <!-- * [CVE-2023-26544](https://www.cve.org/CVERecord?id=CVE-2023-26544)
 * [CVE-2023-26605](https://www.cve.org/CVERecord?id=CVE-2023-26605)
 * [CVE-2023-26606](https://www.cve.org/CVERecord?id=CVE-2023-26606)
 * [CVE-2023-26607](https://www.cve.org/CVERecord?id=CVE-2023-26607) -->
 
-### 1.4.5. New Bugs Reported:
+### 1.3.3. New Bugs Reported:
 <!-- * https://lkml.org/lkml/2023/2/20/128 -->
 <!-- * https://lkml.org/lkml/2023/2/20/773
 * https://lkml.org/lkml/2023/2/20/785
