@@ -4,7 +4,7 @@ Table of Contents
   <!-- - [1.2. Using Enriched corpus with HEALER](#12-using-enriched-corpus-with-healer) -->
   <!-- - [1.2. Citing](#13-citing) -->
   - [1.2. Corpus Construction](#14-diy)
-    - [1.2.1. Collecting expoloits Manually](#141-fetching-corpus-manually)
+    - [1.2.1. Collecting exploits Manually](#141-fetching-corpus-manually)
     - [1.2.2. Generating corpus.db File](#142-generating-corpusdb-file)
   - [1.3. Results](#16-results)
     - [1.3.1. Coverage over time](#161-coverage-over-time)
@@ -97,49 +97,31 @@ We chose Linux kernel v5.15, v6.1, v6.3.4, and v6.5 as our test kernel targets. 
 * [CVE-2023-26606](https://www.cve.org/CVERecord?id=CVE-2023-26606)
 * [CVE-2023-26607](https://www.cve.org/CVERecord?id=CVE-2023-26607) -->
 
-### 1.3.3. New Bugs Reported:
-<!-- * https://lkml.org/lkml/2023/2/20/128 -->
-<!-- * https://lkml.org/lkml/2023/2/20/773
-* https://lkml.org/lkml/2023/2/20/785
-* https://lkml.org/lkml/2023/2/20/860
-* https://lkml.org/lkml/2023/2/21/1353
-* https://lkml.org/lkml/2023/2/22/3 
-* https://lkml.org/lkml/2023/4/13/39
-* https://lkml.org/lkml/2023/4/13/45
-* https://lkml.org/lkml/2023/4/13/1317
-* https://lkml.org/lkml/2023/4/13/1350
-* https://lkml.org/lkml/2023/6/3/90
-* https://lkml.org/lkml/2023/6/3/91
-* https://lkml.org/lkml/2023/6/3/95
-* https://lkml.org/lkml/2023/6/3/98
-* https://lkml.org/lkml/2023/6/3/146
-* https://lkml.org/lkml/2023/6/3/148
-[and many more](https://twitter.com/oswalpalash/status/1627776397828853760) -->
-
-### 1.4.6. More bugs discovered (includes bugs that were found sooner than syzbot & bugs undiscovered by syzbot)
-
-| Title                                                     | Found in #Instance | Date of Discovery | Branch (if found by syzbot)| New/Earlier |
-|-----------------------------------------------------------|--------------------|-------------------|--------------------|------------------|
-| UBSAN: shift-out-of-bounds in ntfs_fill_super              | 10                 | 2/28/23           | 6.2.0              | Yes              |
-| UBSAN: shift-out-of-bounds in nilfs_load_super_block       | 10                 | 10/25/22          | net-6.1-rc3-1       | Yes              |
-| UBSAN: shift-out-of-bounds in dbAllocAG                    | 10                 | 9/28/22           | 6.0.0-rc7          | Yes              |
-| KASAN: use-after-free Read in si470x_int_in_callback       | 10                 | N/A               | regression         | Yes              |
-| KASAN: use-after-free Read in run_unpack                   | 10                 | N/A               | new                | Yes              |
-| KASAN: use-after-free Read in ntfs_trim_fs                  | 10                 | N/A               | new                | Yes              |
-| KASAN: slab-out-of-bounds Read in hdr_find_e                | 10                 | N/A               | new                | Yes              |
-| KASAN: out-of-bounds Read in leaf_paste_entries             | 10                 | N/A               | regression         | Yes              |
-| KASAN: null-ptr-deref Write in f2fs_stop_discard_thread     | 10                 | N/A               | new                | Yes              |
-| KASAN: slab-out-of-bounds Read in ntfs_attr_find             | 8                  | N/A               | new/regression     | Yes              |
-| KASAN: use-after-free Read in em28xx_init_extension         | 6                  | 3/30/22           | 5.17.0-syzkaller-   | Yes              |
-| KASAN: use-after-free Read in do_garbage_collect            | 6                  | 11/13/22          | 6.1.0-rc4-syzkaller | Yes              |
-| KASAN: slab-out-of-bounds Read in do_garbage_collect         | 6                  | 11/13/22          | 6.1.0-rc4-syzkaller | Yes              |
-| KASAN: use-after-free Read in cfusbl_device_notify           | 5                  | 11/12/22          | 5.18.0-rc1-syzkaller| Yes              |
-| KASAN: use-after-free Read in notifier_call_chain            | 4                  | 11/18/22          | 5.18.0-rc3-         | Yes              |
-| KASAN: use-after-free Write in nr_release                    | 3                  | N/A               | regression         | Yes              |
-| KASAN: use-after-free Read in task_work_run                  | 2                  | N/A               | new                | Yes              |
-| KASAN: use-after-free Read in inode_cgwb_move_to_attached    | 2                  | N/A               | new                | Yes              |
-| KASAN: use-after-free Read in __fib6_clean_all               | 2                  | N/A               | new                | Yes              |
-| KASAN: use-after-free Read in tcp_retransmit_timer           | 1                  | N/A               | regression         | Yes              |
-| KASAN: use-after-free Read in nexthop_flush_dev              | 1                  | N/A               | new                | Yes              |
-| KASAN: use-after-free Read in lock_sock_nested               | 1                  | 9/1/20            | 5.9.0-rc3          | Yes              |
-| KASAN: slab-out-of-bounds Read in mi_enum_attr               | 1                  | N/A               | new                | Yes              |
+### 1.3.3. New Bugs Reported Detailed Description:
+| Modules           | Versions | Locations                                       | Bug Types      | Bug Descriptions                                                   |
+|-------------------|----------|-------------------------------------------------|----------------|--------------------------------------------------------------------|
+| fs/ext4           | v6.5     | ext4\_es\_insert\_extent                        | use-after-free | incorrect read task access causes use-after-free error             |
+| arch/x86/kvm      | v6.3.4   | kvm\_vcpu\_reset                                | logic error    | kvm virtual cpu reset process causes error                         |
+| net/8021q         | v6.5     | unregister\_vlan\_dev                           | logic error    | invalid opcode at net/8021q/vlan.c causes error                    |
+| fs/dcache         | v6.3.4   | \_\_d\_add                                      | data race      | contention with read operation at \_\_d\_add function              |
+| net/ipv4          | v6.3.4   | \_\_netlink\_create                             | memory leak    | unreleased memory objects causes leaks                             |
+| net/ipv6          | v6.5     | ip6\_tnl\_exit\_batch\_net                      | logic error    | unregistering process of network devices results error             |
+| mm/slab           | v6.3.4   | cache\_grow\_begin                              | memory leak    | unreferenced object causes memory leak                             |
+| net/can           | v6.5     | raw\_setsockopt                                 | deadlock       | circular lock acquisition results in a deadlock                    |
+| fs/proc           | v6.3.4   | proc\_pid\_status                               | data race      | data race invoking tasks causes system hang                        |
+| mm/memory         | v6.3.4   | copy\_page\_range                               | data race      | unsynchronized access to shared data by threads results in error   |
+| fs/dcache         | v6.3.4   | dentry\_unlink\_inode                           | data race      | file unlinking operations results error                            |
+| fs/proc           | v6.3.4   | task\_dump\_owner                               | data race      | unsynchronized thread access to shared data leads to error         |
+| fs/f2fs           | v6.3.4   | f2fs\_truncate\_data\_blocks\_range             | out-of-bounds  | incorrect read operation results out-of-bounds error               |
+| fs/buffer         | v6.3.4   | submit\_bh\_wbc                                 | logic error    | incorrect write operation causes invalid opcode error              |
+| fs/xfs            | v6.3.4   | xfs\_btree\_lookup\_get\_block                  | logic error    | invalid memory access results error                                |
+| drivers/block/aoe | v6.3.4   | aoecmd\_cfg                                     | logic error    | jump labels operation causes kernel hang error                     |
+| mm/mmap           | v6.3.4   | do\_vmi\_munmap                                 | logic error    | incorrect instruction execution causes kernel panic                |
+| fs/udf            | v6.3.4   | udf\_finalize\_lvid                             | use-after-free | invoking deprecated mand mount option results use-after-free bug   |
+| drivers/block     | v6.5     | sock\_xmit                                      | use-after-free | incorrect memory deallocation causes the use-after-free error      |
+| kernel/sched      | v6.3.4   | run\_rebalance\_domains                         | logic error    | incorrect scheduling operation causes RCU (Read-Copy-Update) error |
+| block/bdev        | v6.3.4   | blkdev\_flush\_mapping                          | dead lock      | incorrect filesystem operation causes error                        |
+| mm/swap           | v6.3.4   | folio\_batch\_move\_lru / folio\_mark\_accessed | data race      | unsynchronized thread access to shared data leads to error         |
+| lib/find_bit      | v6.3.4   | \_find\_first\_bit                              | data race      | unsynchronized thread access to shared data causes error           |
+| mm/filemap        | v6.3.4   | filemap\_fault / page\_add\_file\_rmap          | data race      | inconsistent read and write operations results data race           |
+| fs/ext4           | v6.3.4   | ext4\_do\_writepages / ext4\_mark\_iloc\_dirty  | data race      | unsynchronized thread access to shared data causes race contention |
