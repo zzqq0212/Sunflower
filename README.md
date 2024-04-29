@@ -1,7 +1,7 @@
 Table of Contents
 - [1. Linux Kernel Enriched Corpus Contructed by  leveraging exploits and PoCs for Fuzzers](#1-linux-kernel-enriched-corpus-for-fuzzers)
   - [1.1. Using Enriched corpus with Syzkaller](#11-using-enriched-corpus-with-syzkaller)
-  <!-- - [1.2. Using Enriched corpus with HEALER](#12-using-enriched-corpus-with-healer) -->
+  <!-- - [1.2. Using Enriched corpus   with HEALER](#12-using-enriched-corpus-with-healer) -->
   <!-- - [1.2. Citing](#13-citing) -->
   - [1.2. Corpus Construction](#14-diy)
     - [1.2.1. Collecting exploits Manually](#141-fetching-corpus-manually)
@@ -33,24 +33,13 @@ wget https://github.com/zzqq0212/Sunflower/releases/download/latest/corpus.db
 
 ## 1.2. Corpus Construction
 
-### 1.2.1. Collecting expoloits Manually
+### 1.2.1. Collecting expoloits tracefiles
 
-<!-- [collect.py](./collect.py) : currently fetches `syz` reproducers from all fixed Linux Kernel upstream crashes in [syzbot](https://syzkaller.appspot.com/upstream/fixed).
-
-This script can be modified to fetch corpus programs from other kernel versions and to fetch "C" Programs instead of `syz` reproducers. -->
+you can show the files folder that contains the collected exploits's tracefile by converting the exploits's compiling and executing.
 
 ### 1.2.2. Generating corpus.db File
 
-<!-- If you have a collection of `syz` programs that need to be converted to a syzkaller comptaible `corpus.db` file, you can use `syz-db.go pack` from syzkaller.
-
-An implementation of this is available in the GitHub actions workflow [here](./.github/workflows/corpusgen.yml). -->
-
-<!-- ## 1.3. Corpus Files Available  -->
-<!-- [![Up to date Reproducers](https://github.com/cmu-pasta/linux-kernel-enriched-corpus/actions/workflows/fetch.yml/badge.svg)](https://github.com/cmu-pasta/linux-kernel-enriched-corpus/actions/workflows/fetch.yml) -->
-<!-- 1. [corpus.db](./corpus.db) : Enriched Corpus (version 0 for `syz-db`) -->
-<!-- 2. [ci-qemu-upstream-corpus.db](./ci-qemu-upstream-corpus.db) : Corpus Obtained from Syz-CI (Google's syzbot) (version latest per `syz-db`)
-3. [enriched-ci-qemu-upstream-corpus.db](./enriched-ci-qemu-upstream-corpus.db) : Enriched Version of the Corpus Obtained from Syzbot (version 0 for `syz-db`)
-A detailed comparison of the three is provided in the [research document](https://www.proquest.com/docview/2812311865). More documentation to follow. -->
+you can use syz-db.go pack from syzkaller when you have a collection of syz programs that need to be converted to a syzkaller comptaible corpus.db file.
 
 ## 1.3. Results
 
@@ -92,10 +81,8 @@ We chose Linux kernel v5.15, v6.1, v6.3.4, and v6.5 as our test kernel targets. 
 
 ### 1.3.2. CVEs:
 
-<!-- * [CVE-2023-26544](https://www.cve.org/CVERecord?id=CVE-2023-26544)
-* [CVE-2023-26605](https://www.cve.org/CVERecord?id=CVE-2023-26605)
-* [CVE-2023-26606](https://www.cve.org/CVERecord?id=CVE-2023-26606)
-* [CVE-2023-26607](https://www.cve.org/CVERecord?id=CVE-2023-26607) -->
+* [CVE-2023-40791](https://nvd.nist.gov/vuln/detail/CVE-2023-40791)
+* [CVE-2023-40793](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-40793)
 
 ### 1.3.3. New Bugs Reported Detailed Description:
 | Modules           | Versions | Locations                                       | Bug Types      | Bug Descriptions                                                   |
