@@ -1,8 +1,6 @@
 Table of Contents
 - [1. Linux Kernel Enriched Corpus Contructed by  leveraging exploits and PoCs for Fuzzers](#1-linux-kernel-enriched-corpus-for-fuzzers)
   - [1.1. Using Enriched corpus with Syzkaller](#11-using-enriched-corpus-with-syzkaller)
-  <!-- - [1.2. Using Enriched corpus   with HEALER](#12-using-enriched-corpus-with-healer) -->
-  <!-- - [1.2. Citing](#13-citing) -->
   - [1.2. Corpus Construction](#14-diy)
     - [1.2.1. Collecting exploits Manually](#141-fetching-corpus-manually)
     - [1.2.2. Generating corpus.db File](#142-generating-corpusdb-file)
@@ -10,26 +8,71 @@ Table of Contents
     - [1.3.1. Coverage over time](#161-coverage-over-time)
     - [1.3.2. CVEs:](#164-cves)
     - [1.3.3. New Bugs Reported:](#165-new-bugs-reported)
-    <!-- - [1.4.6. More bugs discovered (includes bugs that were found sooner than syzbot \& bugs undiscovered by syzbot)](#166-more-bugs-discovered-includes-bugs-that-were-found-sooner-than-syzbot--bugs-undiscovered-by-syzbot) -->
-
 
 # 1. Linux Kernel Enriched Corpus for Fuzzers
 
 Documentation for using and generating the Enriched corpus provided here.
 
-<!-- For more questions, feel free to email [Palash Oswal](https://oswalpalash.com) or [Rohan Padhye](https://rohan.padhye.org). -->
-
 
 ## 1.1. Using Enriched corpus with Syzkaller
 
-The latest copy of the Corpus file [corpus.db](https://github.com/zzqq0212/Sunflower/releases/download/latest/corpus.db) is available in the releases for this repository. 
+The latest copy of the Corpus file [corpus.db](https://github.com/zzqq0212/Sunflower/releases/download/latest/corpus.db) is available in the releases for this repository. Meanwhile, The explotis-datas folder contains the exploits raw data. The file folder contains some trace examples that we obtained by executing the compiled expoits program with the strace tool.
+
+We use syzkaller for kernel fuzzing. [Syzkaller](https://github.com/google/syzkaller) is an unsupervised coverage-guided kernel fuzzer.
+
+### How to use syzkaller
+
+### Download and Running
 
 Download it to [syzkaller](https://github.com/google/syzkaller) workdir and start syzkaller.
+
 ```
+cd syzkaller
 mkdir workdir
 cd workdir
 wget https://github.com/zzqq0212/Sunflower/releases/download/latest/corpus.db
+cd ..
+./bin/syz-manager -config my.cfg
 ```
+
+```
+my.cfg sample:
+
+{
+	"target": "linux/amd64",
+	"http": "myhost.com:56741",
+	"workdir": "/syzkaller/workdir",
+	"kernel_obj": "/linux/",
+	"image": "./testdata/wheezy.img",
+	"syzkaller": "./testdata/syzkaller",
+	"disable_syscalls": ["keyctl", "add_key", "request_key"],
+	"suppressions": ["some known bug"],
+	"procs": 4,
+	"type": "qemu",
+	"vm": {
+		"count": 16,
+		"cpu": 2,
+		"mem": 2048,
+		"kernel": "/linux/arch/x86/boot/bzImage",
+		"initrd": "linux/initrd"
+	}
+}
+```
+
+
+
+The `syz-manager` process will wind up VMs and start fuzzing in them.
+Found crashes, statistics and other information is exposed on the HTTP address specified in the manager config.
+
+## Crashes
+
+Once syzkaller detected a kernel crash in one of the VMs, it will automatically start the process of reproducing this crash (unless you specified `"reproduce": false` in the config).
+By default it will use 4 VMs to reproduce the crash and then minimize the program that caused it.
+This may stop the fuzzing, since all of the VMs might be busy reproducing detected crashes.
+
+If a reproducer is successfully found, it can be generated in one of the two forms: syzkaller program or C program.
+Syzkaller always tries to generate a more user-friendly C reproducer, but sometimes fails for various reasons (for example slightly different timings).
+
 
 ## 1.2. Corpus Construction
 
@@ -62,22 +105,6 @@ We chose Linux kernel v5.15, v6.1, v6.3.4, and v6.5 as our test kernel targets. 
 10 VM (2vCPU and 2G RAM) average for 48 hours.
 
 ![image](https://github.com/zzqq0212/Sunflower/blob/main/assets/coverage-sunflower.png)  
-  
-<!-- ![image](https://github.com/cmu-pasta/linux-kernel-enriched-corpus/assets/6431196/ce9a8da6-870d-4004-afbe-3951a7d78b82) -->
-<!-- 
-### 1.4.2. Unique Crashes over time
-1 VM (2vCPU and 4G RAM) for 24 hours.  
-![image](https://github.com/cmu-pasta/linux-kernel-enriched-corpus/assets/6431196/7a4cdbd5-1d70-49a5-8633-21fc17156f45)  
-8 VM (2vCPU and 4G RAM) for 24 hours.  
-![image](https://github.com/cmu-pasta/linux-kernel-enriched-corpus/assets/6431196/83ba1e65-475f-42e8-a7ee-a15329e227aa)
-
-
-### 1.4.3. Total Crashes over time
-1 VM (2vCPU and 4G RAM) for 24 hours.  
-![image](https://github.com/cmu-pasta/linux-kernel-enriched-corpus/assets/6431196/c67bc7b8-6574-4208-8caa-e509eb5900b7)  
-8 VM (2vCPU and 4G RAM) for 24 hours.  
-![image](https://github.com/cmu-pasta/linux-kernel-enriched-corpus/assets/6431196/86ff9b82-68f4-4311-a453-92311cc5223b) -->
-
 
 ### 1.3.2. CVEs:
 
