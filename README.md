@@ -1,117 +1,231 @@
-Table of Contents
-- [1. Linux Kernel Enriched Corpus Contructed by  leveraging exploits and PoCs for Fuzzers](#1-linux-kernel-enriched-corpus-for-fuzzers)
-  - [1.1. Using Enriched corpus with Syzkaller](#11-using-enriched-corpus-with-syzkaller)
-  - [1.2. Corpus Construction](#14-diy)
-    - [1.2.1. Collecting exploits Manually](#141-fetching-corpus-manually)
-    - [1.2.2. Generating corpus.db File](#142-generating-corpusdb-file)
-  - [1.3. Results](#16-results)
-    - [1.3.1. Coverage over time](#161-coverage-over-time)
-    - [1.3.2. CVEs:](#164-cves)
-    - [1.3.3. New Bugs Reported:](#165-new-bugs-reported)
+<!-- Table of Contents
+- [1. Linux Kernel Enriched Corpus Contructed by leveraging exploits and PoCs for Fuzzers](#1-linux-kernel-enriched-corpus-for-fuzzers)
+  - [1.1. Using Enriched corpus with Syzkaller](#11-using-enriched-corpus-with-sunflower)
+  - [1.2. Corpus Construction](#12-corpus-construction)
+    - [1.2.1. Collecting exploits and pocs](#121-collecting-expoloits-and-pocs)
+    - [1.2.2. Generating corpus File](#122-generating-corpus-file)
+  - [1.3. Experiment Results](#13-experiment-results)
+    - [1.3.1. Coverage over time](#131-coverage-over-time)
+    - [1.3.2. CVEs:](#132-cves)
+    - [1.3.3. New Bugs Reported:](#133-new-bugs-reported) -->
 
-# 1. Linux Kernel Enriched Corpus for Fuzzers
+# Sunflower
+Sunflower is an initial corpus generator that leverages existing exploits and proof-of-concept
+examples that specifically designed to meet the criticalrequirements of industry deployments by facilitating the construction of a high-quality seed corpus based on bugs found in the wild. By collecting and analyzing numerous real-world exploits responsible for kernel vulnerabilities, the tool extracts essential system call sequences while also rectifying execution dependency errors.
 
-Documentation for using and generating the Enriched corpus provided here.
+we will provide installation steps that how to build and use sunflower for kernel fuzzing here.
 
+## Build
 
-## 1.1. Using Enriched corpus with Syzkaller
+The latest copy of the Corpus file [corpus.db](https://github.com/zzqq0212/Sunflower/releases/download/latest/corpus.db) is available in the releases for this repository. Meanwhile, The __explotis-datas__ folder contains the exploits raw data. The __files__ folder contains some trace examples that we obtained by executing the compiled expoits program with the __strace__ tool.
+<!-- We use syzkaller for kernel fuzzing. [Syzkaller](https://github.com/google/syzkaller) is an unsupervised coverage-guided kernel fuzzer. -->
 
-The latest copy of the Corpus file [corpus.db](https://github.com/zzqq0212/Sunflower/releases/download/latest/corpus.db) is available in the releases for this repository. Meanwhile, The explotis-datas folder contains the exploits raw data. The file folder contains some trace examples that we obtained by executing the compiled expoits program with the strace tool.
+### Install Prerequisites
 
-We use syzkaller for kernel fuzzing. [Syzkaller](https://github.com/google/syzkaller) is an unsupervised coverage-guided kernel fuzzer.
-
-### How to use syzkaller
-
-### Download and Running
-
-Download it to [syzkaller](https://github.com/google/syzkaller) workdir and start syzkaller.
-
+Basic dependencies install (take for example on debain or ubuntu):
+``` bash
+sudo apt update
+sudo apt install make gcc flex bison libncurses-dev libelf-dev libssl-dev
 ```
-cd syzkaller
+### GCC
+
+If your distro's GCC is older, it's preferable to get the latest GCC from [this](https://gcc.gnu.org/) list. Download and unpack into `$GCC`, and you should have GCC binaries in `$GCC/bin/`
+
+>**Ubuntu 20.04 LTS**: You can ignore this section. GCC is up-to-date.
+
+``` bash
+ls $GCC/bin/
+# Sample output:
+# cpp     gcc-ranlib  x86_64-pc-linux-gnu-gcc        x86_64-pc-linux-gnu-gcc-ranlib
+# gcc     gcov        x86_64-pc-linux-gnu-gcc-9.0.0
+# gcc-ar  gcov-dump   x86_64-pc-linux-gnu-gcc-ar
+# gcc-nm  gcov-tool   x86_64-pc-linux-gnu-gcc-nm
+```
+### Install golang
+We use golang in Sunflower, so make sure golang is installed before build Sunflower.
+
+``` bash
+wget https://dl.google.com/go/go1.22.4.linux-amd64.tar.gz
+tar -xf go1.22.4.linux-amd64.tar.gz
+mv go goroot
+mkdir gopath
+export GOPATH=`pwd`/gopath
+export GOROOT=`pwd`/goroot
+export PATH=$GOPATH/bin:$PATH
+export PATH=$GOROOT/bin:$PATH
+```
+### Prepare Kernel
+In here we use Linux Kernel(Enable Real time Config) v6.5 as an example.
+First we need to have have a compilable Linux
+```bash
+# Download linux kernel 
+git clone https://github.com/torvalds/linux
+cd linux
+export Kernel=$pwd
+git checkout -f 2dde18c
+
+After we have the Linux Kernel, we need to compile it.
+``` bash
+# Modified configuration
+make defconfig  
+make kvmconfig
+vim .config
+```
+
+``` vim
+# modified configuration
+CONFIG_KCOV=y 
+CONFIG_DEBUG_INFO=y 
+CONFIG_KASAN=y
+CONFIG_KASAN_INLINE=y 
+CONFIG_CONFIGFS_FS=y
+CONFIG_SECURITYFS=y
+```
+
+make it!
+``` bash
+make olddefconfig
+make -j32
+```
+
+Now we should have vmlinux (kernel binary) and bzImage (packed kernel image):
+```bash
+$ ls $KERNEL/vmlinux
+$KERNEL/vmlinux
+$ ls $KERNEL/arch/x86/boot/bzImage
+$KERNEL/arch/x86/boot/bzImage
+```
+
+### Prepare Image
+```bash 
+sudo apt-get install debootstrap 
+export IMAGE=$pwd
+cd $IMAGE/
+wget https://raw.githubusercontent.com/google/syzkaller/master/tools/create-image.sh -O create-image.sh
+chmod +x create-image.sh
+./create-image.sh
+```
+Now we have a image stretch.img and a public key.
+
+### Compile sunflower
+``` bash 
+make 
 mkdir workdir
 cd workdir
 wget https://github.com/zzqq0212/Sunflower/releases/download/latest/corpus.db
-cd ..
-./bin/syz-manager -config my.cfg
+```
+As the result compiled binaries should appear in the bin/ dir.
+
+### Ready QEMU
+Install QEMU:
+``` bash
+sudo apt-get install qemu-system-x86
+```
+Make sure the kernel boots and sshd starts:
+``` bash 
+qemu-system-x86_64 \
+	-m 2G \
+	-smp 2 \
+	-kernel $KERNEL/arch/x86/boot/bzImage \
+	-append "console=ttyS0 root=/dev/sda earlyprintk=serial net.ifnames=0" \
+	-drive file=$IMAGE/stretch.img,format=raw \
+	-net user,host=10.0.2.10,hostfwd=tcp:127.0.0.1:10021-:22 \
+	-net nic,model=e1000 \
+	-enable-kvm \
+	-nographic \
+	-pidfile vm.pid \
+	2>&1 | tee vm.log
+```
+see if ssh works
+``` bash 
+ssh -i $IMAGE/stretch.id_rsa -p 10021 ``-o "StrictHostKeyChecking no" 
 ```
 
+To kill the running QEMU instance press Ctrl+A and then X or run:
+``` bash
+kill $(cat vm.pid)
 ```
-my.cfg sample:
+If QEMU works, the kernel boots and ssh succeeds, we can shutdown QEMU and try to run __sunflower__.
 
+Now we can start to prepare a __config.json__ file.
+``` json 
 {
-	"target": "linux/amd64",
-	"http": "myhost.com:56741",
-	"workdir": "/syzkaller/workdir",
-	"kernel_obj": "/linux/",
-	"image": "./testdata/wheezy.img",
-	"syzkaller": "./testdata/syzkaller",
-	"disable_syscalls": ["keyctl", "add_key", "request_key"],
-	"suppressions": ["some known bug"],
-	"procs": 4,
-	"type": "qemu",
-	"vm": {
-		"count": 16,
-		"cpu": 2,
-		"mem": 2048,
-		"kernel": "/linux/arch/x86/boot/bzImage",
-		"initrd": "linux/initrd"
-	}
-}
+        "target": "linux/amd64",
+        "http": "127.0.0.1:56295",
+        "workdir": "./workdir",
+        "cover": false,
+        "kernel_obj": "$(Kernel)/vmlinux",
+        "image": "$(image)/stretch.img",
+        "sshkey": "$(image)/stretch.id_rsa",
+        "syzkaller": "$pwd",
+        "procs": 2,
+        "type": "qemu",
+        "vm": {
+                "count": 2,
+                "kernel": "$(Kernel)/bzImage",
+                "cpu": 2,
+                "mem": 4096
+        }
+
 ```
+Now we can run it.
 
-
-
+``` bash
+./bin/syz-manager -config config.json
+```
 The `syz-manager` process will wind up VMs and start fuzzing in them.
 Found crashes, statistics and other information is exposed on the HTTP address specified in the manager config.
 
-## Crashes
+<!-- ## Corpus Construction
 
-Once syzkaller detected a kernel crash in one of the VMs, it will automatically start the process of reproducing this crash (unless you specified `"reproduce": false` in the config).
-By default it will use 4 VMs to reproduce the crash and then minimize the program that caused it.
-This may stop the fuzzing, since all of the VMs might be busy reproducing detected crashes.
+### 1.2.1. Collecting expoloits and Pocs 
 
-If a reproducer is successfully found, it can be generated in one of the two forms: syzkaller program or C program.
-Syzkaller always tries to generate a more user-friendly C reproducer, but sometimes fails for various reasons (for example slightly different timings).
+We use
 
+you can show the `files` folder that contains the collected exploits's tracefile by converting the exploits's compiling and executing.
 
-## 1.2. Corpus Construction
+### 1.2.2. Generating corpus File
 
-### 1.2.1. Collecting expoloits tracefiles
+you can use `syz-db` pack corpus.db when you have a collection of syzlang programs that need to be converted to a syzkaller comptaible `corpus.db` file.
+```bash
+cd tools/syz-db
+go build syz-db.go
+./tools/syz-db/syz-db pack [tracedir]
+``` -->
 
-you can show the files folder that contains the collected exploits's tracefile by converting the exploits's compiling and executing.
+##  Experiment Results
 
-### 1.2.2. Generating corpus.db File
-
-you can use syz-db.go pack from syzkaller when you have a collection of syz programs that need to be converted to a syzkaller comptaible corpus.db file.
-
-## 1.3. Results
-
-1.Host Machine System Configuration
-   ```
+### Host Machine System Configuration
+```bash
   CPU: 128 core
   Memory: 32GB
   Ubuntu 22.04.4 LTS jammy 
- ```
-2.Virtal Machine Resource Configration
-  ```
+```
+
+### Virtal Machine Resource Configration
+``` bash
   2 core CPU + 2GB Memory
-  ```
-3.Test targeted Linux Version
+```
+
+### Test targeted Linux Version
 
 We chose Linux kernel v5.15, v6.1, v6.3.4, and v6.5 as our test kernel targets. In detail, the Linux v6.5 is the latest release version when we were conducting experiments. Each version of the kernel uses the same compilation configuration, while KCOV and KASAN options are enabled in order to collect code coverage and detect memory errors. When setting up the KCSAN configuration, the same configuration is  used in the control test. 
 
 
-### 1.3.1. Coverage over time 
+### Coverage over time 
+
 10 VM (2vCPU and 2G RAM) average for 48 hours.
 
 ![image](https://github.com/zzqq0212/Sunflower/blob/main/assets/coverage-sunflower.png)  
 
-### 1.3.2. CVEs:
+
+### CVEs:
 
 * [CVE-2023-40791](https://nvd.nist.gov/vuln/detail/CVE-2023-40791)
 * [CVE-2023-40793](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-40793)
 
-### 1.3.3. New Bugs Reported Detailed Description:
+
+### New Bugs Reported:
 | Modules           | Versions | Locations                                       | Bug Types      | Bug Descriptions                                                   |
 |-------------------|----------|-------------------------------------------------|----------------|--------------------------------------------------------------------|
 | fs/ext4           | v6.5     | ext4\_es\_insert\_extent                        | use-after-free | incorrect read task access causes use-after-free error             |
