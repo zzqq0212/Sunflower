@@ -222,6 +222,7 @@ We chose Linux kernel v5.15, v6.1, v6.3.4, and v6.5 as our test kernel targets. 
 ### CVEs:
 
 * [CVE-2023-40791](https://nvd.nist.gov/vuln/detail/CVE-2023-40791)
+* [CVE-2023-40792](https://www.cve.org/CVERecord?id=CVE-2023-40792)
 * [CVE-2023-40793](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-40793)
 
 
